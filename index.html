@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Sổ chi tiêu</title>
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sổ chi tiêu">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#f4f6f8; --card:#fff; --text:#16202a; --muted:#6b7785; --line:#e6eaee;
+  --accent:#2563eb; --accent-soft:#e8efff;
+  --ok:#15803d; --warn:#b45309; --bad:#b91c1c;
+  --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+}
+body.company{--accent:#0f766e; --accent-soft:#e2f4f1}
+body.report{--accent:#7c3aed; --accent-soft:#f1eafe}
+body.settings{--accent:#475569; --accent-soft:#eef1f5}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0e1216; --card:#171c22; --text:#e8edf2; --muted:#93a0ad; --line:#26303a; --accent-soft:#1d2a44}
+  body.company{--accent-soft:#143430} body.report{--accent-soft:#2a1f44} body.settings{--accent-soft:#232a33}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(var(--safe-t) + 12px) 16px 8px}
+header h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.3px}
+header .sub{color:var(--muted);font-size:13px;margin-top:2px}
+main{padding:4px 16px calc(96px + var(--safe-b))}
+.card{background:var(--card);border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.row{display:flex;gap:10px;align-items:center}
+.row > *{flex:1;min-width:0}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;appearance:none;-webkit-appearance:none}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 16px) 52%,calc(100% - 11px) 52%;background-size:5px 5px;background-repeat:no-repeat;padding-right:28px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font-size:19px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.big .v{font-size:28px}
+.bar{height:8px;background:var(--line);border-radius:8px;overflow:hidden;margin-top:10px}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:8px;transition:width .3s}
+.bar.warn > i{background:var(--warn)} .bar.bad > i{background:var(--bad)}
+.status{display:inline-block;margin-top:10px;font-size:13px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--accent-soft);color:var(--accent)}
+.status.warn{color:var(--warn);background:rgba(180,83,9,.12)} .status.bad{color:var(--bad);background:rgba(185,28,28,.12)} .status.ok{color:var(--ok);background:rgba(21,128,61,.12)}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:18px 4px 6px;font-weight:600}
+.cat{display:flex;align-items:center;gap:10px;padding:7px 0}
+.cat .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.cat .name{flex:1}
+.cat .amt{font-variant-numeric:tabular-nums;font-weight:600}
+.cat .pct{width:48px;text-align:right;color:var(--muted);font-size:13px}
+.day{font-size:13px;color:var(--muted);margin:14px 4px 4px;display:flex;justify-content:space-between}
+.item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.item:last-child{border-bottom:0}
+.item .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex:none}
+.item .mid{flex:1;min-width:0}
+.item .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .m{font-size:12px;color:var(--muted)}
+.item .a{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.empty{text-align:center;color:var(--muted);padding:28px 8px}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:13px;font:inherit;font-weight:600;font-size:16px;background:var(--accent);color:#fff;cursor:pointer}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.danger{background:rgba(185,28,28,.12);color:var(--bad)}
+.btn + .btn{margin-top:8px}
+.fab{position:fixed;right:18px;bottom:calc(78px + var(--safe-b));width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:30px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.2);cursor:pointer;z-index:6}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + var(--safe-b))}
+nav button{flex:1;border:0;background:none;color:var(--muted);font:inherit;font-size:11px;padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+nav button .e{font-size:21px}
+nav button.on{color:var(--accent);font-weight:600}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:20px;padding:7px 12px;font:inherit;font-size:14px;cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20;display:none}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--card);border-radius:20px 20px 0 0;padding:10px 16px calc(16px + var(--safe-b));transform:translateY(105%);transition:transform .25s ease;max-height:92vh;overflow:auto}
+.sheet.open{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.sheet h3{margin:0 0 10px;font-size:18px}
+.field{margin-bottom:10px}
+.amount-input{font-size:26px;font-weight:700;text-align:right}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.toast{position:fixed;left:50%;bottom:calc(150px + var(--safe-b));transform:translateX(-50%);background:#16202a;color:#fff;padding:9px 16px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .2s;z-index:30;pointer-events:none}
+.toast.show{opacity:.95}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.small{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Chi tiêu cá nhân</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+<main id="view"></main>
+<button class="fab" id="fab" aria-label="Thêm khoản chi">+</button>
+<nav>
+  <button data-tab="canhan" class="on"><span class="e">👤</span>Cá nhân</button>
+  <button data-tab="congty"><span class="e">🏢</span>Công ty</button>
+  <button data-tab="baocao"><span class="e">📊</span>Báo cáo</button>
+  <button data-tab="caidat"><span class="e">⚙️</span>Cài đặt</button>
+</nav>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <h3 id="formTitle">Thêm khoản chi</h3>
+  <form id="form" autocomplete="off">
+    <div class="field">
+      <label>Số tiền (₫)</label>
+      <input id="fAmount" class="amount-input" inputmode="numeric" placeholder="0" required>
+    </div>
+    <div class="split">
+      <div class="field"><label>Ngày</label><input id="fDate" type="date" required></div>
+      <div class="field"><label>Thanh toán</label><select id="fPay"></select></div>
+    </div>
+    <div class="field"><label>Danh mục</label><div class="chips" id="fCats"></div></div>
+    <div class="field"><label>Nội dung</label><input id="fDesc" placeholder="VD: Cơm trưa"></div>
+    <div class="field"><label>Ghi chú</label><textarea id="fNote" rows="2" placeholder="(không bắt buộc)"></textarea></div>
+    <button class="btn" type="submit">Lưu</button>
+    <button class="btn danger" type="button" id="fDelete" style="display:none">Xóa khoản này</button>
+    <button class="btn ghost" type="button" id="fCancel">Hủy</button>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+"use strict";
+const TZ = "Asia/Ho_Chi_Minh";
+const KEY = "so-chi-tieu-v1";
+const BOOKS = {canhan:"Cá nhân", congty:"Công ty"};
+const CATS = [
+  {n:"Ăn uống", e:"🍜", c:"#f97316"},
+  {n:"Đi lại", e:"🚗", c:"#3b82f6"},
+  {n:"Nhà ở / Văn phòng", e:"🏠", c:"#14b8a6"},
+  {n:"Hóa đơn & tiện ích", e:"💡", c:"#eab308"},
+  {n:"Mua sắm", e:"🛍️", c:"#ec4899"},
+  {n:"Sức khỏe", e:"💊", c:"#22c55e"},
+  {n:"Giải trí / Tiếp khách", e:"🎉", c:"#8b5cf6"},
+  {n:"Khác", e:"📦", c:"#94a3b8"}
+];
+const PAYS = ["Tiền mặt","Chuyển khoản","Thẻ","Ví điện tử"];
+const catOf = n => CATS.find(c => c.n === n) || CATS[CATS.length-1];
+
+/* ---------- Ngày theo giờ Việt Nam ---------- */
+function todayVN(){
+  // YYYY-MM-DD theo múi giờ Asia/Ho_Chi_Minh, bất kể điện thoại đang để múi giờ nào
+  return new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+}
+const monthOf = d => d.slice(0,7);
+function daysInMonth(ym){const [y,m]=ym.split("-").map(Number);return new Date(Date.UTC(y,m,0)).getUTCDate();}
+function dayDiff(a,b){return Math.round((Date.parse(b+"T00:00:00Z")-Date.parse(a+"T00:00:00Z"))/864e5);}
+function fmtDate(d){const [y,m,dd]=d.split("-");return `${dd}/${m}/${y}`;}
+function weekday(d){return ["CN","T2","T3","T4","T5","T6","T7"][new Date(d+"T00:00:00Z").getUTCDay()];}
+function fmtMonth(ym){const [y,m]=ym.split("-");return `Tháng ${Number(m)}/${y}`;}
+const money = n => Math.round(n).toLocaleString("vi-VN") + " ₫";
+const parseMoney = s => Number(String(s).replace(/[^\d]/g,"")) || 0;
+
+/* ---------- Lưu trữ ---------- */
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.entries))return Object.assign({budgets:{}},d);}catch(e){}
+  return {entries:[], budgets:{}};
+}
+let db = load();
+function save(){localStorage.setItem(KEY, JSON.stringify(db));}
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+/* ---------- Trạng thái ---------- */
+const state = {
+  tab:"canhan",
+  month:{canhan:monthOf(todayVN()), congty:monthOf(todayVN())},
+  rp:{from:monthOf(todayVN())+"-01", to:todayVN(), book:"all", pay:"all"},
+  editing:null, formCat:CATS[0].n
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),1800);}
+
+/* ---------- Tính toán ---------- */
+function sumBy(list,key){const o={};list.forEach(e=>{o[e[key]]=(o[e[key]]||0)+e.amount;});return o;}
+function catBlock(list,total){
+  const by=sumBy(list,"cat");
+  const rows=CATS.filter(c=>by[c.n]).sort((a,b)=>by[b.n]-by[a.n]);
+  if(!rows.length) return `<div class="small">Chưa có khoản chi nào.</div>`;
+  return rows.map(c=>`<div class="cat"><span class="dot" style="background:${c.c}"></span><span class="name">${c.e} ${esc(c.n)}</span><span class="amt">${money(by[c.n])}</span><span class="pct">${total?(by[c.n]/total*100).toFixed(1):0}%</span></div>`).join("");
+}
+function listBlock(list,showBook){
+  if(!list.length) return `<div class="empty">Chưa có khoản chi nào.<br>Bấm <b>+</b> để thêm.</div>`;
+  const sorted=[...list].sort((a,b)=>b.date.localeCompare(a.date)||(b.created||0)-(a.created||0));
+  let html="",cur=null,dayTotals=sumBy(sorted,"date");
+  sorted.forEach(e=>{
+    if(e.date!==cur){if(cur)html+=`</div>`;cur=e.date;html+=`<div class="day"><span>${weekday(e.date)}, ${fmtDate(e.date)}</span><span>${money(dayTotals[e.date])}</span></div><div class="card" style="padding:2px 14px;margin-top:0">`;}
+    const c=catOf(e.cat);
+    html+=`<div class="item" data-id="${e.id}"><div class="ic" style="background:${c.c}22">${c.e}</div><div class="mid"><div class="t">${esc(e.desc||e.cat)}</div><div class="m">${esc(e.cat)} · ${esc(e.pay)}${showBook?" · "+BOOKS[e.book]:""}${e.note?" · "+esc(e.note):""}</div></div><div class="a">-${money(e.amount)}</div></div>`;
+  });
+  return html+`</div>`;
+}
+
+/* ---------- Màn hình sổ ---------- */
+function renderBook(book){
+  const ym=state.month[book];
+  const list=db.entries.filter(e=>e.book===book&&monthOf(e.date)===ym);
+  const total=list.reduce((s,e)=>s+e.amount,0);
+  const bkey=book+"|"+ym, budget=db.budgets[bkey]||0;
+  const dim=daysInMonth(ym), today=todayVN();
+  let elapsed = ym<monthOf(today)?dim : ym>monthOf(today)?1 : Number(today.slice(8,10));
+  const avg=total/Math.max(1,elapsed), proj=avg*dim;
+  const used=budget?total/budget:0;
+  let st="ok",stText="✓ Trong ngân sách";
+  if(!budget){st="";stText="Chưa đặt ngân sách";}
+  else if(total>budget){st="bad";stText="⚠ Đã vượt ngân sách";}
+  else if(proj>budget){st="warn";stText="⚠ Có nguy cơ vượt";}
+  $("#subtitle").textContent=fmtMonth(ym)+" · Hôm nay "+fmtDate(today);
+  $("#view").innerHTML=`
+    <div class="card">
+      <div class="row">
+        <div><label>Tháng</label><input type="month" id="mPick" value="${ym}"></div>
+        <div><label>Ngân sách tháng (₫)</label><input id="budget" inputmode="numeric" value="${budget?budget.toLocaleString("vi-VN"):""}" placeholder="Nhập ngân sách"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stats">
+        <div class="stat big" style="grid-column:1/-1"><div class="k">Đã chi</div><div class="v">${money(total)}</div></div>
+        <div class="stat"><div class="k">Còn lại</div><div class="v" style="color:${budget&&budget-total<0?"var(--bad)":"inherit"}">${budget?money(budget-total):"—"}</div></div>
+        <div class="stat"><div class="k">% đã dùng</div><div class="v">${budget?(used*100).toFixed(1)+"%":"—"}</div></div>
+        <div class="stat"><div class="k">TB / ngày</div><div class="v">${money(avg)}</div></div>
+        <div class="stat"><div class="k">Dự kiến cả tháng</div><div class="v">${money(proj)}</div></div>
+      </div>
+      ${budget?`<div class="bar ${st==="ok"?"":st}"><i style="width:${Math.min(100,used*100)}%"></i></div>`:""}
+      <span class="status ${st}">${stText}</span>
+    </div>
+    <h2>Theo danh mục</h2>
+    <div class="card">${catBlock(list,total)}</div>
+    <h2>Nhật ký chi tiêu · ${list.length} khoản</h2>
+    ${listBlock(list,false)}`;
+  $("#mPick").onchange=e=>{if(e.target.value){state.month[book]=e.target.value;render();}};
+  const b=$("#budget");
+  b.oninput=()=>{const v=parseMoney(b.value);b.value=v?v.toLocaleString("vi-VN"):"";};
+  b.onchange=()=>{const v=parseMoney(b.value);if(v)db.budgets[bkey]=v;else delete db.budgets[bkey];save();render();toast("Đã lưu ngân sách");};
+}
+
+/* ---------- Báo cáo ---------- */
+function renderReport(){
+  const r=state.rp;
+  const from=r.from<=r.to?r.from:r.to, to=r.from<=r.to?r.to:r.from;
+  const inRange=db.entries.filter(e=>e.date>=from&&e.date<=to&&(r.book==="all"||e.book===r.book));
+  const list=inRange.filter(e=>r.pay==="all"||e.pay===r.pay);
+  const total=list.reduce((s,e)=>s+e.amount,0);
+  const byPay=sumBy(inRange,"pay");
+  const days=dayDiff(from,to)+1;
+  const byBook=sumBy(list,"book");
+  $("#subtitle").textContent=`${fmtDate(from)} → ${fmtDate(to)} · ${days} ngày`;
+  const chip=(group,val,label)=>`<button class="chip ${r[group]===val?"on":""}" data-g="${group}" data-v="${val}">${label}</button>`;
+  $("#view").innerHTML=`
+    <div class="card">
+      <div class="row">
+        <div><label>Từ ngày</label><input type="date" id="rFrom" value="${r.from}"></div>
+        <div><label>Đến ngày</label><input type="date" id="rTo" value="${r.to}"></div>
+      </div>
+      <div class="chips" style="margin-top:10px">
+        <button class="chip" data-q="today">Hôm nay</button>
+        <button class="chip" data-q="7">7 ngày</button>
+        <button class="chip" data-q="month">Tháng này</button>
+        <button class="chip" data-q="prev">Tháng trước</button>
+      </div>
+      <label style="margin-top:12px">Sổ</label>
+      <div class="chips">${chip("book","all","Cả hai")}${chip("book","canhan","👤 Cá nhân")}${chip("book","congty","🏢 Công ty")}</div>
+      <label style="margin-top:12px">Thanh toán</label>
+      <div class="chips">${chip("pay","all","Tất cả")}${PAYS.map(p=>chip("pay",p,p)).join("")}</div>
+    </div>
+    <div class="card">
+      <div class="stats">
+        <div class="stat big" style="grid-column:1/-1"><div class="k">Tổng chi${r.pay!=="all"?" · "+esc(r.pay):""}</div><div class="v">${money(total)}</div></div>
+        <div class="stat"><div class="k">Số giao dịch</div><div class="v">${list.length}</div></div>
+        <div class="stat"><div class="k">TB / ngày</div><div class="v">${money(total/days)}</div></div>
+        ${r.book==="all"?`<div class="stat"><div class="k">👤 Cá nhân</div><div class="v">${money(byBook.canhan||0)}</div></div><div class="stat"><div class="k">🏢 Công ty</div><div class="v">${money(byBook.congty||0)}</div></div>`:""}
+      </div>
+    </div>
+    <h2>Theo hình thức thanh toán</h2>
+    <div class="card">
+      <div class="stats">
+        <div class="stat"><div class="k">💵 Tiền mặt</div><div class="v">${money(byPay["Tiền mặt"]||0)}</div></div>
+        <div class="stat"><div class="k">🏦 Chuyển khoản</div><div class="v">${money(byPay["Chuyển khoản"]||0)}</div></div>
+        <div class="stat"><div class="k">💳 Thẻ</div><div class="v">${money(byPay["Thẻ"]||0)}</div></div>
+        <div class="stat"><div class="k">📱 Ví điện tử</div><div class="v">${money(byPay["Ví điện tử"]||0)}</div></div>
+      </div>
+    </div>
+    <h2>Theo danh mục</h2>
+    <div class="card">${catBlock(list,total)}</div>
+    <div class="card"><button class="btn ghost" id="rCsv">⬇︎ Xuất báo cáo (CSV mở bằng Excel)</button></div>
+    <h2>Chi tiết · ${list.length} khoản</h2>
+    ${listBlock(list,true)}`;
+  $("#rFrom").onchange=e=>{if(e.target.value){r.from=e.target.value;render();}};
+  $("#rTo").onchange=e=>{if(e.target.value){r.to=e.target.value;render();}};
+  document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{r[b.dataset.g]=b.dataset.v;render();});
+  document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{
+    const t=todayVN();
+    if(b.dataset.q==="today"){r.from=r.to=t;}
+    if(b.dataset.q==="7"){const d=new Date(t+"T00:00:00Z");d.setUTCDate(d.getUTCDate()-6);r.from=d.toISOString().slice(0,10);r.to=t;}
+    if(b.dataset.q==="month"){r.from=monthOf(t)+"-01";r.to=t;}
+    if(b.dataset.q==="prev"){const [y,m]=t.split("-").map(Number);const py=m===1?y-1:y,pm=m===1?12:m-1;const ym=`${py}-${String(pm).padStart(2,"0")}`;r.from=ym+"-01";r.to=ym+"-"+daysInMonth(ym);}
+    render();
+  });
+  $("#rCsv").onclick=()=>exportCSV(list,`bao-cao_${from}_${to}.csv`);
+}
+
+/* ---------- Cài đặt ---------- */
+function renderSettings(){
+  $("#subtitle").textContent=`${db.entries.length} khoản chi đã lưu trên máy này`;
+  $("#view").innerHTML=`
+    <h2>Sao lưu dữ liệu</h2>
+    <div class="card">
+      <div class="small" style="margin-bottom:10px">Dữ liệu chỉ lưu trên iPhone này. Hãy sao lưu định kỳ (VD cuối mỗi tháng) để không bị mất khi xóa app hoặc đổi máy.</div>
+      <button class="btn" id="sBackup">⬇︎ Tải file sao lưu (.json)</button>
+      <button class="btn ghost" id="sRestore">⬆︎ Khôi phục từ file sao lưu</button>
+      <button class="btn ghost" id="sCsv">⬇︎ Xuất toàn bộ ra CSV (Excel)</button>
+    </div>
+    <h2>Xóa dữ liệu</h2>
+    <div class="card">
+      <div class="row"><div><label>Xóa các khoản chi trước tháng</label><input type="month" id="sOld" value="${monthOf(todayVN())}"></div></div>
+      <div style="height:8px"></div>
+      <button class="btn danger" id="sClean">Xóa dữ liệu cũ</button>
+    </div>
+    <h2>Thông tin</h2>
+    <div class="card small">Ngày giờ trong app luôn theo múi giờ <b>Việt Nam (GMT+7, Hồ Chí Minh)</b>.<br>Hôm nay: <b>${weekday(todayVN())}, ${fmtDate(todayVN())}</b>.</div>`;
+  $("#sBackup").onclick=()=>download(JSON.stringify(db,null,1),`so-chi-tieu_saoluu_${todayVN()}.json`,"application/json");
+  $("#sRestore").onclick=()=>$("#importFile").click();
+  $("#sCsv").onclick=()=>exportCSV(db.entries,`so-chi-tieu_${todayVN()}.csv`);
+  $("#sClean").onclick=()=>{
+    const ym=$("#sOld").value; if(!ym)return;
+    const n=db.entries.filter(e=>monthOf(e.date)<ym).length;
+    if(!n){toast("Không có dữ liệu cũ hơn "+fmtMonth(ym));return;}
+    if(confirm(`Xóa vĩnh viễn ${n} khoản chi trước ${fmtMonth(ym)}? Nên tải file sao lưu trước.`)){
+      db.entries=db.entries.filter(e=>monthOf(e.date)>=ym);save();render();toast(`Đã xóa ${n} khoản`);
+    }
+  };
+}
+$("#importFile").onchange=async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(!d||!Array.isArray(d.entries))throw 0;
+    if(confirm(`Khôi phục ${d.entries.length} khoản chi? Dữ liệu hiện tại sẽ được thay thế.`)){
+      db={entries:d.entries,budgets:d.budgets||{}};save();render();toast("Đã khôi phục");
+    }
+  }catch(_){alert("File không hợp lệ.");}
+  e.target.value="";
+};
+function download(text,name,type){
+  const blob=new Blob([text],{type});const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+}
+function exportCSV(list,name){
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const rows=[["Sổ","Ngày","Danh mục","Nội dung","Số tiền","Thanh toán","Ghi chú"]]
+    .concat([...list].sort((a,b)=>a.date.localeCompare(b.date)).map(e=>[BOOKS[e.book],fmtDate(e.date),e.cat,e.desc,e.amount,e.pay,e.note]));
+  download("﻿"+rows.map(r=>r.map(q).join(",")).join("\r\n"),name,"text/csv;charset=utf-8");
+}
+
+/* ---------- Form thêm / sửa ---------- */
+function openForm(entry){
+  state.editing=entry||null;
+  $("#formTitle").textContent=entry?"Sửa khoản chi":`Thêm chi tiêu ${BOOKS[state.tab]||""}`.trim();
+  $("#fAmount").value=entry?entry.amount.toLocaleString("vi-VN"):"";
+  const t=todayVN(), ym=state.month[state.tab];
+  $("#fDate").value=entry?entry.date:(ym&&ym!==monthOf(t)?ym+"-01":t);
+  $("#fPay").innerHTML=PAYS.map(p=>`<option ${entry?(entry.pay===p?"selected":""):(p===(localStorage.getItem(KEY+"-pay")||"Tiền mặt")?"selected":"")}>${p}</option>`).join("");
+  state.formCat=entry?entry.cat:CATS[0].n; drawCats();
+  $("#fDesc").value=entry?entry.desc:""; $("#fNote").value=entry?entry.note:"";
+  $("#fDelete").style.display=entry?"block":"none";
+  $("#sheetBg").style.display="block"; requestAnimationFrame(()=>$("#sheet").classList.add("open"));
+  if(!entry) setTimeout(()=>$("#fAmount").focus(),250);
+}
+function closeForm(){$("#sheet").classList.remove("open");setTimeout(()=>$("#sheetBg").style.display="none",250);}
+function drawCats(){
+  $("#fCats").innerHTML=CATS.map(c=>`<button type="button" class="chip ${c.n===state.formCat?"on":""}" data-c="${esc(c.n)}">${c.e} ${esc(c.n)}</button>`).join("");
+  document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{state.formCat=b.dataset.c;drawCats();});
+}
+$("#fAmount").oninput=e=>{const v=parseMoney(e.target.value);e.target.value=v?v.toLocaleString("vi-VN"):"";};
+$("#form").onsubmit=e=>{
+  e.preventDefault();
+  const amount=parseMoney($("#fAmount").value);
+  if(!amount){toast("Nhập số tiền");return;}
+  const data={date:$("#fDate").value||todayVN(),cat:state.formCat,desc:$("#fDesc").value.trim(),amount,pay:$("#fPay").value,note:$("#fNote").value.trim()};
+  localStorage.setItem(KEY+"-pay",data.pay);
+  if(state.editing){Object.assign(state.editing,data);}
+  else{db.entries.push(Object.assign({id:uid(),book:state.tab,created:Date.now()},data));}
+  save();closeForm();
+  if(BOOKS[state.tab]&&monthOf(data.date)!==state.month[state.tab]) state.month[state.tab]=monthOf(data.date);
+  render();toast(state.editing?"Đã cập nhật":"Đã thêm "+money(amount));
+};
+$("#fDelete").onclick=()=>{
+  if(state.editing&&confirm("Xóa khoản chi này?")){db.entries=db.entries.filter(x=>x!==state.editing);save();closeForm();render();toast("Đã xóa");}
+};
+$("#fCancel").onclick=closeForm; $("#sheetBg").onclick=closeForm;
+$("#view").addEventListener("click",e=>{
+  const it=e.target.closest(".item"); if(!it)return;
+  const entry=db.entries.find(x=>x.id===it.dataset.id); if(entry)openForm(entry);
+});
+$("#fab").onclick=()=>openForm(null);
+
+/* ---------- Điều hướng ---------- */
+const TITLES={canhan:"Chi tiêu cá nhân",congty:"Chi tiêu công ty",baocao:"Báo cáo tổng",caidat:"Cài đặt"};
+function render(){
+  const t=state.tab;
+  document.body.className={canhan:"",congty:"company",baocao:"report",caidat:"settings"}[t];
+  $("#title").textContent=TITLES[t];
+  $("#fab").style.display=BOOKS[t]?"block":"none";
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  if(BOOKS[t])renderBook(t); else if(t==="baocao")renderReport(); else renderSettings();
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;window.scrollTo(0,0);render();});
+// Cập nhật lại "hôm nay" khi mở lại app sau một thời gian
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!$("#sheet").classList.contains("open"))render();});
+render();
+
+if("serviceWorker" in navigator && location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+</script>
+</body>
+</html>
